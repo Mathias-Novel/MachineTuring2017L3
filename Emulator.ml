@@ -236,16 +236,37 @@ struct
   (* PROJET 2017: modifiez ce code -> *)
     = fun alphabet ->
       let symbol_to_bits : Symbol.t -> Bits.t
-        = fun symbol -> [ Bit.zero ; Bit.unit ]
+        = fun symbol -> [ Bit.zero ; Bit.unit ] =
+        {
+        alphabet.symbol_size_in_bits=4;
+        match symbol with
+        |B -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.zero]
+        |D -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.unit]
+        |Z -> [Bit.zero ; Bit.zero ; Bit.unit ; Bit.zero]
+        |U -> [Bit.zero ; Bit.zero ; Bit.unit ; Bit.unit]
+        |S -> [Bit.zero ; Bit.unit ; Bit.zero ; Bit.zero]
+        |L -> [Bit.zero ; Bit.unit ; Bit.zero ; Bit.unit]
+        |O -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.unit]
+        |C -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.zero]
+        |X -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.unit]
+      }
       in
       List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
 
+(*
+alphabet.symbol_size_in_bits=5
+match symbol with
+|B -> [Bit.zero ; Bit.zero ; Bit.zero ; ]
+*)
 
   (** MODIFIED 27/03/2107 *)
   let encode_with : encoding -> Band.t list -> Band.t list
   (* PROJET 2017: modifiez ce code -> *)
     = fun encoding ->
-      (fun bands -> bands)
+      (fun bands -> bands) =
+      (*match head with
+  	  | []    -> { empty with alphabet = alphabet ; right = [] }
+  	  | s::ymbols -> { empty with alphabet = alphabet ; head = s ; right = ymbols }*)
 
 
   (* REVERSE TRANSLATION *)
