@@ -253,21 +253,17 @@ struct
       in
       List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
 
-(*
-alphabet.symbol_size_in_bits=5
-match symbol with
-|B -> [Bit.zero ; Bit.zero ; Bit.zero ; ]
-*)
-
   (** MODIFIED 27/03/2107 *)
   let encode_with : encoding -> Band.t list -> Band.t list
   (* PROJET 2017: modifiez ce code -> *)
     = fun encoding ->
-      (fun bands -> bands) =
-      
-      (*match head with
-  	  | []    -> { empty with alphabet = alphabet ; right = [] }
-  	  | s::ymbols -> { empty with alphabet = alphabet ; head = s ; right = ymbols }*)
+      (fun bands -> bandsRes) =
+      let encodeBand : encoding -> Band.t -> Band.t =
+        fun encoding -> band -> bandRes =
+        match band.left with
+        | Some Symbol.t -> Band.move_head_left band;
+        | None -> {snd (find (fun encodage -> fst encodage = band.head) encoding) :: bandRes; Band.move_head_right band; band.left = []}
+      in List.map (fun encoding -> Band.t -> Band.t -> (encodeBand encoding band bandRes)) bandsRes
 
 
   (* REVERSE TRANSLATION *)
