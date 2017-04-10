@@ -246,9 +246,9 @@ struct
         |U -> [Bit.zero ; Bit.zero ; Bit.unit ; Bit.unit]
         |S -> [Bit.zero ; Bit.unit ; Bit.zero ; Bit.zero]
         |L -> [Bit.zero ; Bit.unit ; Bit.zero ; Bit.unit]
-        |O -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.unit]
-        |C -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.zero]
-        |X -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.unit]
+        |O -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.zero]
+        |C -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.unit]
+        |X -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.zero]
       }
       in
       List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
@@ -264,6 +264,7 @@ match symbol with
   (* PROJET 2017: modifiez ce code -> *)
     = fun encoding ->
       (fun bands -> bands) =
+      
       (*match head with
   	  | []    -> { empty with alphabet = alphabet ; right = [] }
   	  | s::ymbols -> { empty with alphabet = alphabet ; head = s ; right = ymbols }*)
