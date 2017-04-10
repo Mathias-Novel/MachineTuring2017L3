@@ -263,7 +263,7 @@ struct
         match band.left with
         | Some Symbol.t -> Band.move_head_left band;
         | None -> {snd (find (fun encodage -> fst encodage = band.head) encoding) :: bandRes; Band.move_head_right band; band.left = []}
-      in List.map (fun encoding -> Band.t -> Band.t -> (encodeBand encoding band bandRes)) bands
+      in List.map (fun encoding -> Band.t -> (encodeBand encoding band)) encoding bands
 
 
   (* REVERSE TRANSLATION *)
