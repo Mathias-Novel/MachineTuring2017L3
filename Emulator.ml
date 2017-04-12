@@ -23,6 +23,7 @@ open Execution
 
 
 
+
 type emulator   = State.t * Action.t * State.t -> Turing_Machine.t
 type translator = Band.t list -> Band.t list
 
@@ -219,7 +220,6 @@ module Split =
 
 
 
-
 module Binary =
 struct
 
@@ -232,13 +232,14 @@ struct
 
   (** NEW 27/03/2107 *)
 
+
+  (* yolo style *)
   let build_encoding : Alphabet.t -> encoding
   (* PROJET 2017: modifiez ce code -> *)
     = fun alphabet ->
       let symbol_to_bits : Symbol.t -> Bits.t
-        = fun symbol -> [ Bit.zero ; Bit.unit ] =
-        {
-        alphabet.symbol_size_in_bits=4;
+        = fun symbol ->
+        (*alphabet.symbol_size_in_bits = 4;*)
         match symbol with
         |B -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.zero]
         |D -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.unit]
@@ -249,29 +250,44 @@ struct
         |O -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.zero]
         |C -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.unit]
         |X -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.zero]
-      }
+
       in
       List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
+
+      (* A enterer au plus profond *)
+      (*let build_encoding_v2  :Alphabet.t -> encoding
+      (* PROJET 2017: modifiez ce code -> *)
+        = fun alphabet ->
+        let enumere = Bit_Vector.Made_Of(Bit).enumerate alphabet.symbol_size_in_bits
+        in
+        let rec atribution : Symbol.t list -> encoding
+          = fun symbols ->
+          match symbols with
+          | [] -> (List.hd , (List.hd enumere))
+          | _ -> (List.hd , (List.tl enumere)) :: (atribution (List.tl symbols)
+        in
+        atribution alphabet.symbols*)
+
+        let build_encoding_v3  :Alphabet.t -> encoding
+        (* PROJET 2017: modifiez ce code -> *)
+          = fun alphabet ->
+          let taille = (List.length (Alphabet.symbols_of alphabet)) in
+          List.combine alphabet.symbols (Bits.enumerate taille)
+
+
 
       (** MODIFIED 27/03/2107 *)
       let encode_with : encoding -> Band.t list -> Band.t list
       (* PROJET 2017: modifiez ce code -> *)
-        = fun encoding ->
-          (fun bands -> bandsRes) =
-          let encodeBand : encoding -> Band.t -> Band.t =
-            fun encoding -> band -> bandRes =
-            match band.left with
-            | Some Symbol.t -> encodeBand encoding Band.move_head_left band;
-            | None -> match band.head with
-              | V -> ()
-              | _ -> {
-                snd (find (fun encodage -> fst encodage = band.head) encoding) :: bandRes.left;
-                Band.move_head_right band;
-                band.left = [];
-                encodeBand encoding band
-              }
+        = fun encoding bands ->
+          let rec encodeBand :Band.t -> Band.t =
+            fun band ->
+            match band.head with
+            | V symbol-> band
+            | _ -> encodeBand (Band.ecrire_symbole_en_bits band (snd (List.find (fun encodage -> fst encodage = band.head) encoding)))
 
-          in List.map (fun encoding -> Band.t -> (encodeBand encoding band)) encoding bands
+          in
+          List.map (fun band -> encodeBand (rembobine_gauche band)) bands
 
 
   (* REVERSE TRANSLATION *)
