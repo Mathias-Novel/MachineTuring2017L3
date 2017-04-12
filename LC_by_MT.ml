@@ -164,8 +164,8 @@ module Reduce =
 
 
     let (a_turing_machine_that_beta_reduces_lambda_term: Turing_Machine.t) =
-      (* PROJET 2017: modifiez ce code -> *) 
-      Turing_Machine.nop 
+      (* PROJET 2017: modifiez ce code -> *)
+      Turing_Machine.nop
 
 
     let (reduce_by_turing_machine: Band.t -> Band.t) = fun band ->

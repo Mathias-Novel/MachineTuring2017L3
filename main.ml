@@ -1,4 +1,4 @@
-(* Michaël PÉRIN, Verimag / Université Grenoble-Alpes, Février 2017 
+(* Michaël PÉRIN, Verimag / Université Grenoble-Alpes, Février 2017
  *
  * Part of the project TURING MACHINES FOR REAL
  *
@@ -7,13 +7,13 @@
  *)
 
 
-  
+
 (* DEMO *)
+(*
+let _ = Demo.demo ()
 
-let _ = Demo.demo () 
+let _ = LC_by_MT.demo ()
 
-let _ = LC_by_MT.demo ()       
+*)
 
-let _ = Emulator.demo ()  
-       
-
+let _ = Emulator.demo ()

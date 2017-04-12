@@ -74,6 +74,7 @@ module Band =
       (* Fonction pour remboniner la bande *)
       let rec (rembobine_gauche: band -> band) =  fun band ->
       match band.left with
+      | [] -> band
       | s::lobmys -> { band with left = lobmys ; head = s ; right = band.head::band.right }
 
 
@@ -83,10 +84,16 @@ module Band =
       | []    -> { band with left = band.head::band.left ; head = B ; right = [] }
       | s::ymbols -> { band with left = [] ; head = s ; right = ymbols }
 
+      let (move_head_right_plus: band -> band) = fun band ->
+        match band.right with
+        | []    -> { band with left = band.head::band.left ; head = B ; right = [] }
+        | _     -> { band with left = band.head::band.left ; head = B }
+
       (*ecrire_symbole_en_bits*)
       let rec (ecrire_symbole_en_bits: band -> Bit.t list -> band) = fun band bits ->
       if bits = [] then band
-      else ecrire_symbole_en_bits (move_head_right (write (List.hd bits) band)) (List.tl bits)
+      else ecrire_symbole_en_bits (move_head_right_plus (write (List.hd bits) band)) (List.tl bits)
+
 
 
 

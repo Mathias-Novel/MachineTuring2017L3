@@ -254,40 +254,40 @@ struct
       in
       List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
 
-      (* A enterer au plus profond *)
-      (*let build_encoding_v2  :Alphabet.t -> encoding
-      (* PROJET 2017: modifiez ce code -> *)
-        = fun alphabet ->
-        let enumere = Bit_Vector.Made_Of(Bit).enumerate alphabet.symbol_size_in_bits
-        in
-        let rec atribution : Symbol.t list -> encoding
-          = fun symbols ->
-          match symbols with
-          | [] -> (List.hd , (List.hd enumere))
-          | _ -> (List.hd , (List.tl enumere)) :: (atribution (List.tl symbols)
-        in
-        atribution alphabet.symbols*)
+  (* A enterer au plus profond *)
+  (*let build_encoding_v2  :Alphabet.t -> encoding
+  (* PROJET 2017: modifiez ce code -> *)
+    = fun alphabet ->
+    let enumere = Bit_Vector.Made_Of(Bit).enumerate alphabet.symbol_size_in_bits
+    in
+    let rec atribution : Symbol.t list -> encoding
+      = fun symbols ->
+      match symbols with
+      | [] -> (List.hd , (List.hd enumere))
+      | _ -> (List.hd , (List.tl enumere)) :: (atribution (List.tl symbols)
+    in
+    atribution alphabet.symbols*)
 
-        let build_encoding_v3  :Alphabet.t -> encoding
-        (* PROJET 2017: modifiez ce code -> *)
-          = fun alphabet ->
-          let taille = (List.length (Alphabet.symbols_of alphabet)) in
-          List.combine alphabet.symbols (Bits.enumerate taille)
+    let build_encoding_v3  :Alphabet.t -> encoding
+    (* PROJET 2017: modifiez ce code -> *)
+      = fun alphabet ->
+      let taille = (List.length (Alphabet.symbols_of alphabet)) in
+      List.combine alphabet.symbols (Bits.enumerate taille)
 
 
 
-      (** MODIFIED 27/03/2107 *)
-      let encode_with : encoding -> Band.t list -> Band.t list
-      (* PROJET 2017: modifiez ce code -> *)
-        = fun encoding bands ->
-          let rec encodeBand :Band.t -> Band.t =
-            fun band ->
-            match band.head with
-            | V symbol-> band
-            | _ -> encodeBand (Band.ecrire_symbole_en_bits band (snd (List.find (fun encodage -> fst encodage = band.head) encoding)))
+  (** MODIFIED 27/03/2107 *)
+  let encode_with : encoding -> Band.t list -> Band.t list
+  (* PROJET 2017: modifiez ce code -> *)
+    = fun encoding bands ->
+      let rec encode_bande :Band.t -> Band.t =
+        fun band ->
+        match band.right with
+        | []-> band
+        | _ -> encode_bande (Band.move_head_right (Band.ecrire_symbole_en_bits band (snd (List.find (fun encodage -> fst encodage = band.head) encoding))))
 
-          in
-          List.map (fun band -> encodeBand (rembobine_gauche band)) bands
+      in
+      List.map (fun band -> encode_bande (rembobine_gauche band)) bands
 
 
   (* REVERSE TRANSLATION *)
@@ -295,8 +295,24 @@ struct
   (** MODIFIED 27/03/2107 *)
   let decode_with : encoding -> Band.t list -> Band.t list
   (* PROJET 2017: modifiez ce code -> *)
-    = fun encoding ->
-      (fun bands -> bands)
+    = fun encoding bands->
+      let rec prochain_symbol : Bits.t -> Band.t -> (Symbol.t * Band.t) =
+        fun bits bande ->
+        try ((fst (List.find (fun encodage -> snd encodage = bits) encoding)), bande)
+        with
+        Not_found -> prochain_symbol (bits@[bande.head]) (Band.move_head_right_avec_suppression_gauche bande)
+      in
+      let rec decode_bande : Band.t -> Band.t =
+        fun bande ->
+        match bande.right with
+        | [] -> bande
+        | _ -> let iterateur = prochain_symbol (bande.head::[]) bande in
+                let b = Band.write (fst iterateur) in
+                  decode_bande (snd iterateur)
+      in
+      List.map (fun band -> decode_bande (rembobine_gauche band)) bands
+
+
 
 
   (* EMULATION OF TRANSITIONS *)
@@ -341,3 +357,17 @@ let (demo: unit -> unit) = fun () ->
       ],[])
       cfg
   in ()
+
+  (*
+  let (demo: unit -> unit) = fun () ->
+    let alphabet = Alphabet.make [B;Z;U] in
+    let band = Band.make alphabet [U;U;Z;U] in
+    let tm = Turing_Machine.incr in
+    let cfg = Configuration.make tm [ band ] in
+    let _final_cfg = Simulator.log_run_using
+        ([ (* Split.simulator ; *)
+          (** MODIFIED 27/03/2107 *) Binary.make_simulator alphabet
+        ],[])
+        cfg
+    in ()
+  *)
