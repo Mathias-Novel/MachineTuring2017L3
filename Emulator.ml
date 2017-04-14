@@ -141,6 +141,7 @@ open Action
 open Band
 open Transition
 open Turing_Machine
+open MyList
 
 (* An example of a useless but correct translation that splits the effect of a transition into three steps
 
@@ -233,13 +234,12 @@ struct
   (** NEW 27/03/2107 *)
 
 
-  (* yolo style *)
-  let build_encoding : Alphabet.t -> encoding
+
+  (*let build_encoding_v1 : Alphabet.t -> encoding
   (* PROJET 2017: modifiez ce code -> *)
     = fun alphabet ->
       let symbol_to_bits : Symbol.t -> Bits.t
         = fun symbol ->
-        (*alphabet.symbol_size_in_bits = 4;*)
         match symbol with
         |B -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.zero]
         |D -> [Bit.zero ; Bit.zero ; Bit.zero ; Bit.unit]
@@ -250,11 +250,9 @@ struct
         |O -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.zero]
         |C -> [Bit.zero ; Bit.unit ; Bit.unit ; Bit.unit]
         |X -> [Bit.unit ; Bit.zero ; Bit.zero ; Bit.zero]
-
       in
-      List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols
+      List.map (fun symbol -> (symbol, symbol_to_bits symbol)) alphabet.symbols*)
 
-  (* A enterer au plus profond *)
   (*let build_encoding_v2  :Alphabet.t -> encoding
   (* PROJET 2017: modifiez ce code -> *)
     = fun alphabet ->
@@ -268,49 +266,97 @@ struct
     in
     atribution alphabet.symbols*)
 
-    let build_encoding_v3  :Alphabet.t -> encoding
-    (* PROJET 2017: modifiez ce code -> *)
-      = fun alphabet ->
-      let taille = (List.length (Alphabet.symbols_of alphabet)) in
-      List.combine alphabet.symbols (Bits.enumerate taille)
+  let build_encoding  :Alphabet.t -> encoding
+  (* PROJET 2017: modifiez ce code -> *)
+    = fun alphabet ->
+    let taille = (List.length (Alphabet.symbols_of alphabet)) in
+    List.combine alphabet.symbols (Bits.enumerate taille)
 
+  let get_symbole_from_bits : Symbol.t list -> encoding -> Symbol.t
+  = fun bits encodage -> try (fst (List.find (fun encod -> snd encod = bits) encodage)) with Not_found -> B
 
+  let get_bits_from_symbole : Symbol.t -> encoding -> Bits.t
+  = fun symb encodage -> (snd (List.find (fun encod -> fst encod = symb) encodage))
 
   (** MODIFIED 27/03/2107 *)
-  let encode_with : encoding -> Band.t list -> Band.t list
+  (*let encode_with_v1 : encoding -> Band.t list -> Band.t list
   (* PROJET 2017: modifiez ce code -> *)
     = fun encoding bands ->
       let rec encode_bande :Band.t -> Band.t =
         fun band ->
         match band.right with
-        | []-> band
-        | _ -> encode_bande (Band.move_head_right (Band.ecrire_symbole_en_bits band (snd (List.find (fun encodage -> fst encodage = band.head) encoding))))
+        | [] -> band
+        | _ -> encode_bande (Band.move_head_right (Band.ecrire_symbole_en_bits band (get_bits_from_symbole band.head encoding) ))
 
       in
-      List.map (fun band -> encode_bande (rembobine_gauche band)) bands
+      List.map (fun band -> encode_bande (rembobine_gauche band)) bands*)
+
+  let encode_with : encoding -> Band.t list -> Band.t list
+  (* PROJET 2017: modifiez ce code -> *)
+    = fun encoding bands ->
+
+      let rec encode_list : Symbol.t list -> Bits.t
+        = fun symbs ->
+        match symbs with
+        | [] -> []
+        | s::ymbs -> (encode_list ymbs) @ (get_bits_from_symbole s encoding)
+      in
+
+      let encode_bande :Band.t -> Band.t =
+        fun bande -> {
+          bande with left = encode_list bande.left ;
+          head = List.hd (get_bits_from_symbole bande.head encoding);
+          right = (List.tl (get_bits_from_symbole bande.head encoding)) @ (encode_list bande.right)
+        }
+
+      in
+      List.map (fun bande -> encode_bande bande) bands
 
 
   (* REVERSE TRANSLATION *)
 
   (** MODIFIED 27/03/2107 *)
+  (*let decode_with_v1 : encoding -> Band.t list -> Band.t list
+(* PROJET 2017: modifiez ce code -> *)
+  = fun encoding bands->
+    let rec prochain_symbol : Bits.t -> Band.t -> (Symbol.t * Band.t) =
+      fun bits bande ->
+      try ((fst (List.find (fun encodage -> snd encodage = bits) encoding)), bande)
+      with
+      Not_found -> prochain_symbol (bits@[bande.head]) (Band.move_head_right_avec_suppression_gauche bande)
+    in
+    let rec decode_bande : Band.t -> Band.t =
+      fun bande ->
+      match bande.right with
+      | [] -> bande
+      | _ -> let iterateur = prochain_symbol (bande.head::[]) bande in
+              let b = Band.write (fst iterateur) in
+                decode_bande (snd iterateur)
+    in
+    List.map (fun band -> decode_bande (rembobine_gauche band)) bands*)
+
+
   let decode_with : encoding -> Band.t list -> Band.t list
   (* PROJET 2017: modifiez ce code -> *)
     = fun encoding bands->
-      let rec prochain_symbol : Bits.t -> Band.t -> (Symbol.t * Band.t) =
-        fun bits bande ->
-        try ((fst (List.find (fun encodage -> snd encodage = bits) encoding)), bande)
-        with
-        Not_found -> prochain_symbol (bits@[bande.head]) (Band.move_head_right_avec_suppression_gauche bande)
-      in
-      let rec decode_bande : Band.t -> Band.t =
-        fun bande ->
-        match bande.right with
-        | [] -> bande
-        | _ -> let iterateur = prochain_symbol (bande.head::[]) bande in
-                let b = Band.write (fst iterateur) in
-                  decode_bande (snd iterateur)
-      in
-      List.map (fun band -> decode_bande (rembobine_gauche band)) bands
+
+    let rec decode_list : Symbol.t list -> Symbol.t list
+      = fun bits ->
+      match bits with
+      | [] -> []
+      | _ -> let bande = (MyList.split_at (List.length (snd (List.hd encoding))) bits) in
+            (get_symbole_from_bits (fst bande) encoding) :: (decode_list (snd bande))
+    in
+
+    let rec decode_bande : Band.t -> Band.t =
+      fun bande -> {
+        bande with left = decode_list bande.left;
+        head = get_symbole_from_bits (bande.head :: (fst (MyList.split_at (List.length (snd (List.hd encoding)) - 1) bande.right))) encoding;
+        right = decode_list (snd (MyList.split_at (List.length (snd (List.hd encoding)) - 1) bande.right))
+        }
+    in
+
+    List.map (fun bande -> decode_bande bande) bands
 
 
 
@@ -349,14 +395,30 @@ open Alphabet
 let (demo: unit -> unit) = fun () ->
   let alphabet = Alphabet.make [B;Z;U] in
   let band = Band.make alphabet [U;U;Z;U] in
+
+  let encodage = Binary.build_encoding alphabet in
+  let band_code = List.hd (Binary.encode_with encodage [band]) in
+  let band_decode = List.hd (Binary.decode_with encodage [band]) in
+
   let tm = Turing_Machine.incr in
   let cfg = Configuration.make tm [ band ] in
   let _final_cfg = Simulator.log_run_using
       ([ (* Split.simulator ; *)
-        (** MODIFIED 27/03/2107 *) Binary.make_simulator alphabet
+        (** MODIFIED 27/03/2107 *) (*Binary.make_simulator alphabet*)
       ],[])
       cfg
-  in ()
+  in (
+    print_string "Bande avant encodage : ";
+    print_string (Band.to_ascii band);
+
+    print_string "\nBande apres encodage : ";
+    print_string (Band.to_ascii band_code);
+
+    print_string "\nBande apres decodage : ";
+    print_string (Band.to_ascii band_decode);
+
+    print_string "\n"
+    )
 
   (*
   let (demo: unit -> unit) = fun () ->

@@ -74,7 +74,7 @@ module Band =
       (* Fonction pour remboniner la bande *)
       let rec (rembobine_gauche: band -> band) =  fun band ->
       match band.left with
-      | [] -> band
+      | [] -> { band with left = []}
       | s::lobmys -> { band with left = lobmys ; head = s ; right = band.head::band.right }
 
 

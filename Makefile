@@ -14,7 +14,7 @@ CMA = unix.cma
 #/!\ graphics.cma is not available on all distribution
 
 # The compiler with option
-OCAMLC = ocamlc -w -8 -w -26
+OCAMLC = ocamlc -g -w -8 -w -26
 
 # directory needed for logging execution traces
 log_dir = _log
